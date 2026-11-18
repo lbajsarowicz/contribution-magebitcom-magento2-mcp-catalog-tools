@@ -25,8 +25,10 @@ class PreserveInheritedValuesTest extends TestCase
     /** @var Category&MockObject */
     private Category $category;
 
+    /** @var PreserveInheritedValues */
     private PreserveInheritedValues $preserve;
 
+    /** @var bool */
     private bool $cacheCleared = false;
 
     protected function setUp(): void

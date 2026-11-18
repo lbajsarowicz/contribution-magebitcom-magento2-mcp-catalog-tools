@@ -49,6 +49,7 @@ class CategoryUpdateTest extends TestCase
     /** @var PreserveInheritedValues&MockObject */
     private PreserveInheritedValues $preserveInheritedValues;
 
+    /** @var CategoryUpdate */
     private CategoryUpdate $tool;
 
     /** @var array<int, string> */
@@ -62,11 +63,17 @@ class CategoryUpdateTest extends TestCase
      */
     private array $repositoryCache = [];
 
+    /** @var bool */
     private bool $moved = false;
 
-    /** Root category of every store view the test resolves. */
+    /**
+     * Root category of every store view the test resolves.
+     *
+     * @var int
+     */
     private int $rootCategoryId = 2;
 
+    /** @var int|null */
     private ?int $savedParentId = null;
 
     protected function setUp(): void

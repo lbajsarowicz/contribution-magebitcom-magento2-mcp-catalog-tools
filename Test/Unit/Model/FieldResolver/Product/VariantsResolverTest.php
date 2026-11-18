@@ -17,6 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 class VariantsResolverTest extends TestCase
 {
+    /** @var VariantsResolver */
     private VariantsResolver $resolver;
 
     protected function setUp(): void

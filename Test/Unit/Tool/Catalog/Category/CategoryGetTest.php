@@ -19,6 +19,7 @@ use PHPUnit\Framework\TestCase;
 
 class CategoryGetTest extends TestCase
 {
+    /** @var CategoryGet */
     private CategoryGet $tool;
 
     protected function setUp(): void

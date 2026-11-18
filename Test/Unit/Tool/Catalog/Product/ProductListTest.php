@@ -16,6 +16,7 @@ use PHPUnit\Framework\TestCase;
 
 class ProductListTest extends TestCase
 {
+    /** @var ProductList */
     private ProductList $tool;
 
     protected function setUp(): void
