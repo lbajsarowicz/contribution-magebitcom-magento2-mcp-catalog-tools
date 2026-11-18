@@ -46,7 +46,7 @@ class ProductUpdateTest extends TestCase
         $this->tool = new ProductUpdate(
             new EntityFinder(
                 $this->productRepository,
-                $this->createMock(CategoryRepositoryInterface::class)
+                $this->createStub(CategoryRepositoryInterface::class)
             ),
             $this->productRepository,
             $this->fieldApplier,
@@ -56,6 +56,10 @@ class ProductUpdateTest extends TestCase
 
     public function testSchemaExposesStoreCode(): void
     {
+        $this->productRepository->expects($this->never())->method('save');
+        $this->storeManager->expects($this->never())->method('getStores');
+        $this->fieldApplier->expects($this->never())->method('applyOptional');
+
         $schema = $this->tool->getInputSchema();
         $this->assertIsArray($schema['properties']);
         $this->assertArrayHasKey('store_code', $schema['properties']);
@@ -64,6 +68,9 @@ class ProductUpdateTest extends TestCase
 
     public function testLoadsAndSavesAtAdminScopeByDefault(): void
     {
+        $this->storeManager->expects($this->never())->method('getStores');
+        $this->fieldApplier->expects($this->once())->method('applyOptional');
+
         $product = $this->productMock(0);
 
         $this->productRepository->expects($this->once())
@@ -85,7 +92,9 @@ class ProductUpdateTest extends TestCase
 
     public function testStoreCodeArgumentResolvesToThatStoreScope(): void
     {
-        $store = $this->createMock(StoreInterface::class);
+        $this->fieldApplier->expects($this->once())->method('applyOptional');
+
+        $store = $this->createStub(StoreInterface::class);
         $store->method('getCode')->willReturn('better_baseball');
         $store->method('getId')->willReturn(3);
         $this->storeManager->expects($this->once())
@@ -122,7 +131,9 @@ class ProductUpdateTest extends TestCase
 
     public function testUnknownStoreCodeThrows(): void
     {
-        $this->storeManager->method('getStores')->with(true)->willReturn([]);
+        $this->fieldApplier->expects($this->never())->method('applyOptional');
+
+        $this->storeManager->expects($this->once())->method('getStores')->with(true)->willReturn([]);
         $this->productRepository->expects($this->never())->method('get');
         $this->productRepository->expects($this->never())->method('save');
 

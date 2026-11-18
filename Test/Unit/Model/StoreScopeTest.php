@@ -22,6 +22,7 @@ class StoreScopeTest extends TestCase
     /** @var StoreManagerInterface&MockObject */
     private StoreManagerInterface $storeManager;
 
+    /** @var StoreScope */
     private StoreScope $scope;
 
     /** @var array<int, string> */
@@ -77,7 +78,7 @@ class StoreScopeTest extends TestCase
 
     public function testUnknownStoreIdIsRefusedBeforeSwitching(): void
     {
-        $current = $this->createMock(StoreInterface::class);
+        $current = $this->createStub(StoreInterface::class);
         $current->method('getId')->willReturn(1);
         $this->storeManager->method('getStore')
             ->willReturnCallback(function ($storeId = null) use ($current): StoreInterface {
@@ -100,7 +101,7 @@ class StoreScopeTest extends TestCase
      */
     private function currentStoreIs(int $storeId): void
     {
-        $store = $this->createMock(StoreInterface::class);
+        $store = $this->createStub(StoreInterface::class);
         $store->method('getId')->willReturn($storeId);
         $this->storeManager->method('getStore')->willReturn($store);
     }
@@ -110,7 +111,7 @@ class StoreScopeTest extends TestCase
      */
     private function recordScopeSwitches(): void
     {
-        $this->storeManager->method('setCurrentStore')
+        $this->storeManager->expects($this->exactly(2))->method('setCurrentStore')
             ->willReturnCallback(function ($store): void {
                 $this->calls[] = 'switch:' . (string) $store;
             });

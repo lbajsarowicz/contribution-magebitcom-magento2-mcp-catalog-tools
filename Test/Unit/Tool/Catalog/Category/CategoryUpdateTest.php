@@ -21,6 +21,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 class CategoryUpdateTest extends TestCase
@@ -57,7 +58,7 @@ class CategoryUpdateTest extends TestCase
      * Stand-in for `CategoryRepository::$instances`, keyed the way the vendor
      * repository keys it: `[$categoryId][$storeId ?? 'all']`.
      *
-     * @var array<int, array<int|string, CategoryInterface&MockObject>>
+     * @var array<int, array<int|string, CategoryInterface&Stub>>
      */
     private array $repositoryCache = [];
 
@@ -88,7 +89,7 @@ class CategoryUpdateTest extends TestCase
         // `/mcp` resolves a frontend store view; store 1 under root 2 stands in
         // for it. Any store asked for by id reports `$rootCategoryId`, so a check
         // that consults the current store instead of the requested one is caught.
-        $currentStore = $this->createMock(Store::class);
+        $currentStore = $this->createStub(Store::class);
         $currentStore->method('getId')->willReturn(1);
         $currentStore->method('getRootCategoryId')->willReturn(2);
         $this->storeManager->method('getStore')
@@ -96,7 +97,7 @@ class CategoryUpdateTest extends TestCase
                 if ($storeId === null) {
                     return $currentStore;
                 }
-                $store = $this->createMock(Store::class);
+                $store = $this->createStub(Store::class);
                 $store->method('getId')->willReturn((int) $storeId);
                 $store->method('getRootCategoryId')->willReturnCallback(fn (): int => $this->rootCategoryId);
                 return $store;
@@ -108,12 +109,12 @@ class CategoryUpdateTest extends TestCase
 
         $this->tool = new CategoryUpdate(
             new EntityFinder(
-                $this->createMock(ProductRepositoryInterface::class),
+                $this->createStub(ProductRepositoryInterface::class),
                 $this->categoryRepository
             ),
             $this->categoryRepository,
             $this->categoryManagement,
-            $this->createMock(CategoryFieldApplier::class),
+            $this->createStub(CategoryFieldApplier::class),
             new StoreScope($this->storeManager),
             $this->preserveInheritedValues,
             $this->storeManager
@@ -122,6 +123,11 @@ class CategoryUpdateTest extends TestCase
 
     public function testStoreIdDescriptionStatesGlobalDefault(): void
     {
+        $this->categoryRepository->expects($this->never())->method('save');
+        $this->categoryManagement->expects($this->never())->method('move');
+        $this->storeManager->expects($this->never())->method('getStore');
+        $this->preserveInheritedValues->expects($this->never())->method('apply');
+
         $schema = $this->tool->getInputSchema();
         $this->assertIsArray($schema['properties']);
         $description = $schema['properties']['store_id']['description'];
@@ -132,6 +138,11 @@ class CategoryUpdateTest extends TestCase
 
     public function testDefaultsToGlobalScopeForLoadAndSave(): void
     {
+        $this->categoryRepository->expects($this->once())->method('save');
+        $this->categoryManagement->expects($this->never())->method('move');
+        $this->storeManager->expects($this->atLeastOnce())->method('getStore');
+        $this->preserveInheritedValues->expects($this->once())->method('apply');
+
         $this->tool->execute(['id' => 5, 'meta_title' => 'Global title']);
 
         $this->assertSame(['switch:0', 'get:0', 'save', 'switch:1'], $this->calls);
@@ -139,6 +150,11 @@ class CategoryUpdateTest extends TestCase
 
     public function testExplicitStoreIdKeepsThatScope(): void
     {
+        $this->categoryRepository->expects($this->once())->method('save');
+        $this->categoryManagement->expects($this->never())->method('move');
+        $this->storeManager->expects($this->atLeastOnce())->method('getStore');
+        $this->preserveInheritedValues->expects($this->once())->method('apply');
+
         $this->tool->execute(['id' => 5, 'store_id' => 3, 'meta_title' => 'Store title']);
 
         $this->assertSame(['get:all', 'switch:3', 'get:3', 'save', 'switch:1'], $this->calls);
@@ -151,6 +167,9 @@ class CategoryUpdateTest extends TestCase
      */
     public function testStoreOutsideTheCategorysRootIsRefused(): void
     {
+        $this->categoryManagement->expects($this->never())->method('move');
+        $this->preserveInheritedValues->expects($this->never())->method('apply');
+
         $this->rootCategoryId = 906;
         $this->storeManager->expects($this->never())->method('setCurrentStore');
         $this->categoryRepository->expects($this->never())->method('save');
@@ -168,6 +187,11 @@ class CategoryUpdateTest extends TestCase
      */
     public function testMoveIntoTheStoresRootIsAllowed(): void
     {
+        $this->categoryRepository->expects($this->once())->method('save');
+        $this->categoryManagement->expects($this->once())->method('move');
+        $this->storeManager->expects($this->atLeastOnce())->method('getStore');
+        $this->preserveInheritedValues->expects($this->once())->method('apply');
+
         $this->rootCategoryId = 906;
 
         $this->tool->execute(['id' => 5, 'store_id' => 3, 'parent_id' => self::PARENT_IN_OTHER_ROOT]);
@@ -180,6 +204,11 @@ class CategoryUpdateTest extends TestCase
      */
     public function testRootIdMatchingOnlyAsASubstringIsStillRefused(): void
     {
+        $this->categoryRepository->expects($this->never())->method('save');
+        $this->categoryManagement->expects($this->never())->method('move');
+        $this->storeManager->expects($this->atLeastOnce())->method('getStore');
+        $this->preserveInheritedValues->expects($this->never())->method('apply');
+
         $this->rootCategoryId = 90;
 
         $this->expectException(LocalizedException::class);
@@ -189,6 +218,10 @@ class CategoryUpdateTest extends TestCase
 
     public function testMoveOutOfTheStoresRootIsRefused(): void
     {
+        $this->categoryRepository->expects($this->never())->method('save');
+        $this->storeManager->expects($this->atLeastOnce())->method('getStore');
+        $this->preserveInheritedValues->expects($this->never())->method('apply');
+
         $this->rootCategoryId = 906;
         $this->categoryManagement->expects($this->never())->method('move');
 
@@ -205,6 +238,10 @@ class CategoryUpdateTest extends TestCase
      */
     public function testInheritedValuesAreResetOnTheSavedInstanceWithThePatch(): void
     {
+        $this->categoryRepository->expects($this->once())->method('save');
+        $this->categoryManagement->expects($this->never())->method('move');
+        $this->storeManager->expects($this->atLeastOnce())->method('getStore');
+
         $this->preserveInheritedValues->expects($this->once())
             ->method('apply')
             ->with(
@@ -224,6 +261,11 @@ class CategoryUpdateTest extends TestCase
      */
     public function testGlobalScopeIsNotCheckedAgainstTheCurrentStoresRoot(): void
     {
+        $this->categoryRepository->expects($this->once())->method('save');
+        $this->categoryManagement->expects($this->never())->method('move');
+        $this->storeManager->expects($this->atLeastOnce())->method('getStore');
+        $this->preserveInheritedValues->expects($this->once())->method('apply');
+
         $this->rootCategoryId = 906;
 
         $this->tool->execute(['id' => 5, 'meta_title' => 'Global title']);
@@ -241,6 +283,11 @@ class CategoryUpdateTest extends TestCase
      */
     public function testMoveThenSaveDoesNotWriteBackPreMoveTreeColumns(): void
     {
+        $this->categoryRepository->expects($this->once())->method('save');
+        $this->categoryManagement->expects($this->once())->method('move');
+        $this->storeManager->expects($this->atLeastOnce())->method('getStore');
+        $this->preserveInheritedValues->expects($this->once())->method('apply');
+
         $result = $this->tool->execute(['id' => 5, 'parent_id' => self::PARENT_AFTER_MOVE]);
 
         $this->assertSame(
@@ -260,6 +307,11 @@ class CategoryUpdateTest extends TestCase
 
     public function testMoveAtAnExplicitStoreScopeIsAlsoFresh(): void
     {
+        $this->categoryRepository->expects($this->once())->method('save');
+        $this->categoryManagement->expects($this->once())->method('move');
+        $this->storeManager->expects($this->atLeastOnce())->method('getStore');
+        $this->preserveInheritedValues->expects($this->once())->method('apply');
+
         $this->tool->execute([
             'id' => 5,
             'store_id' => 3,
@@ -275,6 +327,10 @@ class CategoryUpdateTest extends TestCase
 
     public function testParentIdMatchingTheCurrentParentDoesNotMove(): void
     {
+        $this->categoryRepository->expects($this->once())->method('save');
+        $this->storeManager->expects($this->atLeastOnce())->method('getStore');
+        $this->preserveInheritedValues->expects($this->once())->method('apply');
+
         $this->categoryManagement->expects($this->never())->method('move');
 
         $result = $this->tool->execute(['id' => 5, 'parent_id' => self::PARENT_BEFORE_MOVE]);
@@ -300,7 +356,7 @@ class CategoryUpdateTest extends TestCase
                 $key = $storeId ?? 'all';
                 $this->calls[] = 'get:' . (string) $key;
                 if (!isset($this->repositoryCache[$categoryId][$key])) {
-                    $this->repositoryCache[$categoryId][$key] = $this->categoryMock(
+                    $this->repositoryCache[$categoryId][$key] = $this->categoryStub(
                         (int) $categoryId,
                         $this->moved ? self::PARENT_AFTER_MOVE : self::PARENT_BEFORE_MOVE
                     );
@@ -341,11 +397,11 @@ class CategoryUpdateTest extends TestCase
     /**
      * @param int $id
      * @param int $parentId
-     * @return CategoryInterface&MockObject
+     * @return CategoryInterface&Stub
      */
-    private function categoryMock(int $id, int $parentId): CategoryInterface
+    private function categoryStub(int $id, int $parentId): CategoryInterface
     {
-        $category = $this->createMock(CategoryInterface::class);
+        $category = $this->createStub(CategoryInterface::class);
         $category->method('getId')->willReturn($id);
         $category->method('getName')->willReturn('Shoes');
         $category->method('getParentId')->willReturn($parentId);

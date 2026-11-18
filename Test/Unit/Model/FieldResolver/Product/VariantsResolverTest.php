@@ -32,7 +32,7 @@ class VariantsResolverTest extends TestCase
 
     public function testNonConfigurableResolvesToNull(): void
     {
-        $product = $this->createMock(ProductInterface::class);
+        $product = $this->createStub(ProductInterface::class);
         $product->method('getTypeId')->willReturn('simple');
 
         $this->assertSame(['variants' => null], $this->resolver->resolve($product, []));
@@ -40,7 +40,7 @@ class VariantsResolverTest extends TestCase
 
     public function testConfigurableTypeIdOnAPlainDataObjectResolvesToNull(): void
     {
-        $product = $this->createMock(ProductInterface::class);
+        $product = $this->createStub(ProductInterface::class);
         $product->method('getTypeId')->willReturn(Configurable::TYPE_CODE);
 
         $this->assertSame(['variants' => null], $this->resolver->resolve($product, []));
@@ -48,9 +48,9 @@ class VariantsResolverTest extends TestCase
 
     public function testForeignTypeInstanceResolvesToNull(): void
     {
-        $product = $this->createMock(Product::class);
+        $product = $this->createStub(Product::class);
         $product->method('getTypeId')->willReturn(Configurable::TYPE_CODE);
-        $product->method('getTypeInstance')->willReturn($this->createMock(Simple::class));
+        $product->method('getTypeInstance')->willReturn($this->createStub(Simple::class));
 
         $this->assertSame(['variants' => null], $this->resolver->resolve($product, []));
     }
@@ -63,7 +63,7 @@ class VariantsResolverTest extends TestCase
         $first->method('getName')->willReturn('Gobi HeatTec Tee-XS-Black');
         $first->method('getPrice')->willReturn(29.0);
         $first->method('getStatus')->willReturn('1');
-        $first->method('getData')->with('special_price')->willReturn('19.5');
+        $first->expects($this->once())->method('getData')->with('special_price')->willReturn('19.5');
 
         $second = $this->createMock(Product::class);
         $second->method('getId')->willReturn('432');
@@ -71,9 +71,9 @@ class VariantsResolverTest extends TestCase
         $second->method('getName')->willReturn('Gobi HeatTec Tee-XS-Blue');
         $second->method('getPrice')->willReturn(0.0);
         $second->method('getStatus')->willReturn('2');
-        $second->method('getData')->with('special_price')->willReturn(null);
+        $second->expects($this->once())->method('getData')->with('special_price')->willReturn(null);
 
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createStub(Product::class);
         $parent->method('getTypeId')->willReturn(Configurable::TYPE_CODE);
 
         $typeInstance = $this->createMock(Configurable::class);
@@ -110,10 +110,10 @@ class VariantsResolverTest extends TestCase
 
     public function testConfigurableWithoutChildrenResolvesToEmptyArray(): void
     {
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createStub(Product::class);
         $parent->method('getTypeId')->willReturn(Configurable::TYPE_CODE);
 
-        $typeInstance = $this->createMock(Configurable::class);
+        $typeInstance = $this->createStub(Configurable::class);
         $typeInstance->method('getUsedProducts')->willReturn([]);
         $parent->method('getTypeInstance')->willReturn($typeInstance);
 

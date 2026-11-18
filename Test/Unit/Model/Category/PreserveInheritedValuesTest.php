@@ -14,6 +14,7 @@ use Magento\Catalog\Model\Category;
 use Magento\Catalog\Model\ResourceModel\Eav\Attribute;
 use Magento\Eav\Model\Config as EavConfig;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 class PreserveInheritedValuesTest extends TestCase
@@ -31,7 +32,7 @@ class PreserveInheritedValuesTest extends TestCase
     protected function setUp(): void
     {
         $this->cacheCleared = false;
-        $eavConfig = $this->createMock(EavConfig::class);
+        $eavConfig = $this->createStub(EavConfig::class);
         $this->overridden = $this->createMock(ScopeOverriddenValue::class);
         $this->category = $this->createMock(Category::class);
         $this->category->method('getId')->willReturn(42);
@@ -61,6 +62,7 @@ class PreserveInheritedValuesTest extends TestCase
 
     public function testNullsOnlyInheritedAttributesOutsideThePatch(): void
     {
+        $this->overridden->expects($this->once())->method('clearAttributesValues');
         $this->category->method('getStoreId')->willReturn(6);
         $this->category->expects($this->once())->method('setData')->with('meta_title', null);
 
@@ -71,6 +73,7 @@ class PreserveInheritedValuesTest extends TestCase
 
     public function testCustomAttributeKeysCountAsPatched(): void
     {
+        $this->overridden->expects($this->once())->method('clearAttributesValues');
         $this->category->method('getStoreId')->willReturn(6);
         $this->category->expects($this->once())->method('setData')->with('name', null);
 
@@ -89,11 +92,11 @@ class PreserveInheritedValuesTest extends TestCase
     /**
      * @param bool $global
      * @param bool $static
-     * @return Attribute&MockObject
+     * @return Attribute&Stub
      */
     private function attribute(bool $global, bool $static): Attribute
     {
-        $attribute = $this->createMock(Attribute::class);
+        $attribute = $this->createStub(Attribute::class);
         $attribute->method('isScopeGlobal')->willReturn($global);
         $attribute->method('isStatic')->willReturn($static);
         return $attribute;

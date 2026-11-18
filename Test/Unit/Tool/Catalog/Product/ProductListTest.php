@@ -21,9 +21,9 @@ class ProductListTest extends TestCase
     protected function setUp(): void
     {
         $this->tool = new ProductList(
-            $this->createMock(ProductRepositoryInterface::class),
-            $this->createMock(ProductSearchCriteriaBuilder::class),
-            $this->createMock(ResolverPipeline::class),
+            $this->createStub(ProductRepositoryInterface::class),
+            $this->createStub(ProductSearchCriteriaBuilder::class),
+            $this->createStub(ResolverPipeline::class),
             []
         );
     }

@@ -21,9 +21,9 @@ class CategoryListTest extends TestCase
     protected function setUp(): void
     {
         $this->tool = new CategoryList(
-            $this->createMock(CategoryListInterface::class),
-            $this->createMock(CategorySearchCriteriaBuilder::class),
-            $this->createMock(ResolverPipeline::class),
+            $this->createStub(CategoryListInterface::class),
+            $this->createStub(CategorySearchCriteriaBuilder::class),
+            $this->createStub(ResolverPipeline::class),
             []
         );
     }

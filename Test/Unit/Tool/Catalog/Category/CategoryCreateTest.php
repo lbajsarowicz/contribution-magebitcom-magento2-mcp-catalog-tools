@@ -24,13 +24,13 @@ class CategoryCreateTest extends TestCase
     {
         $calls = [];
 
-        $category = $this->createMock(CategoryInterface::class);
+        $category = $this->createStub(CategoryInterface::class);
         $category->method('getId')->willReturn(12);
         $category->method('getName')->willReturn('New');
         $category->method('getParentId')->willReturn(2);
         $category->method('getLevel')->willReturn(2);
 
-        $factory = $this->createMock(CategoryInterfaceFactory::class);
+        $factory = $this->createStub(CategoryInterfaceFactory::class);
         $factory->method('create')->willReturn($category);
 
         $repository = $this->createMock(CategoryRepositoryInterface::class);
@@ -42,9 +42,9 @@ class CategoryCreateTest extends TestCase
                 return $saved;
             });
 
-        $currentStore = $this->createMock(StoreInterface::class);
+        $currentStore = $this->createStub(StoreInterface::class);
         $currentStore->method('getId')->willReturn(1);
-        $storeManager = $this->createMock(StoreManagerInterface::class);
+        $storeManager = $this->createStub(StoreManagerInterface::class);
         $storeManager->method('getStore')->willReturn($currentStore);
         $storeManager->method('setCurrentStore')
             ->willReturnCallback(function ($store) use (&$calls): void {
@@ -54,7 +54,7 @@ class CategoryCreateTest extends TestCase
         $tool = new CategoryCreate(
             $repository,
             $factory,
-            $this->createMock(CategoryFieldApplier::class),
+            $this->createStub(CategoryFieldApplier::class),
             new StoreScope($storeManager)
         );
 
