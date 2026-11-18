@@ -20,7 +20,7 @@ class StockSetTest extends TestCase
 {
     public function testToolMetadata(): void
     {
-        $tool = $this->tool($this->createMock(StockRegistryInterface::class), true);
+        $tool = $this->tool($this->createStub(StockRegistryInterface::class), true);
 
         $this->assertSame('catalog.product.stock.set', $tool->getName());
         $this->assertSame(
@@ -34,7 +34,7 @@ class StockSetTest extends TestCase
 
     public function testSchemaHasNoCompositionKeywords(): void
     {
-        $schema = $this->tool($this->createMock(StockRegistryInterface::class), true)->getInputSchema();
+        $schema = $this->tool($this->createStub(StockRegistryInterface::class), true)->getInputSchema();
 
         $this->assertSame('object', $schema['type']);
         foreach (['oneOf', 'anyOf', 'allOf', '$ref'] as $forbidden) {
@@ -67,7 +67,7 @@ class StockSetTest extends TestCase
      */
     public function testOneBadSkuDoesNotFailTheBatch(): void
     {
-        $registry = $this->createMock(StockRegistryInterface::class);
+        $registry = $this->createStub(StockRegistryInterface::class);
         $registry->method('getStockItemBySku')->willReturnCallback(
             function (string $sku): StockItemInterface {
                 if ($sku === 'missing') {
@@ -92,7 +92,7 @@ class StockSetTest extends TestCase
 
     public function testNoWarningInSingleSourceMode(): void
     {
-        $registry = $this->createMock(StockRegistryInterface::class);
+        $registry = $this->createStub(StockRegistryInterface::class);
         $registry->method('getStockItemBySku')->willReturn($this->stockItem());
 
         $result = $this->tool($registry, true)->execute([
@@ -109,7 +109,7 @@ class StockSetTest extends TestCase
      */
     public function testWarnsWhenStoreIsMultiSource(): void
     {
-        $registry = $this->createMock(StockRegistryInterface::class);
+        $registry = $this->createStub(StockRegistryInterface::class);
         $registry->method('getStockItemBySku')->willReturn($this->stockItem());
 
         $result = $this->tool($registry, false)->execute([
@@ -136,7 +136,7 @@ class StockSetTest extends TestCase
         $stockItem->expects($this->once())->method('setUseConfigBackorders')->with(false);
         $stockItem->expects($this->once())->method('setBackorders')->with(1);
 
-        $registry = $this->createMock(StockRegistryInterface::class);
+        $registry = $this->createStub(StockRegistryInterface::class);
         $registry->method('getStockItemBySku')->willReturn($stockItem);
 
         $this->tool($registry, true)->execute([
@@ -151,7 +151,7 @@ class StockSetTest extends TestCase
      */
     private function tool(StockRegistryInterface $registry, bool $singleSource): StockSet
     {
-        $checker = $this->createMock(SingleSourceModeCheckerInterface::class);
+        $checker = $this->createStub(SingleSourceModeCheckerInterface::class);
         $checker->method('isSingleSourceMode')->willReturn($singleSource);
 
         return new StockSet($registry, $checker);
@@ -162,7 +162,7 @@ class StockSetTest extends TestCase
      */
     private function stockItem(): StockItemInterface
     {
-        $stockItem = $this->createMock(StockItemInterface::class);
+        $stockItem = $this->createStub(StockItemInterface::class);
         $stockItem->method('getQty')->willReturn(5.0);
         $stockItem->method('getIsInStock')->willReturn(true);
 

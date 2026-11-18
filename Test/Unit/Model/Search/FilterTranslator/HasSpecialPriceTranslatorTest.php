@@ -11,6 +11,7 @@ namespace Magebit\McpCatalogTools\Test\Unit\Model\Search\FilterTranslator;
 use Magebit\McpCatalogTools\Model\Search\FilterTranslator\HasSpecialPriceTranslator;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class HasSpecialPriceTranslatorTest extends TestCase
@@ -57,6 +58,7 @@ class HasSpecialPriceTranslatorTest extends TestCase
      * @throws LocalizedException
      * @dataProvider coercibleValuesProvider
      */
+    #[DataProvider('coercibleValuesProvider')]
     public function testScalarBooleanFormsAreCoerced(mixed $value, string $expectedCondition): void
     {
         $builder = $this->createMock(SearchCriteriaBuilder::class);
@@ -88,6 +90,7 @@ class HasSpecialPriceTranslatorTest extends TestCase
      * @throws LocalizedException
      * @dataProvider invalidValuesProvider
      */
+    #[DataProvider('invalidValuesProvider')]
     public function testNonBooleanValueThrows(mixed $value): void
     {
         $builder = $this->createMock(SearchCriteriaBuilder::class);

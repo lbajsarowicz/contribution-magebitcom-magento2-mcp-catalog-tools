@@ -16,14 +16,15 @@ use PHPUnit\Framework\TestCase;
 
 class ProductListTest extends TestCase
 {
+    /** @var ProductList */
     private ProductList $tool;
 
     protected function setUp(): void
     {
         $this->tool = new ProductList(
-            $this->createMock(ProductRepositoryInterface::class),
-            $this->createMock(ProductSearchCriteriaBuilder::class),
-            $this->createMock(ResolverPipeline::class),
+            $this->createStub(ProductRepositoryInterface::class),
+            $this->createStub(ProductSearchCriteriaBuilder::class),
+            $this->createStub(ResolverPipeline::class),
             []
         );
     }

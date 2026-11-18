@@ -16,6 +16,7 @@ use Magento\Framework\Api\SortOrder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\Exception\LocalizedException;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 class CategorySearchCriteriaBuilderTest extends TestCase
@@ -33,16 +34,16 @@ class CategorySearchCriteriaBuilderTest extends TestCase
     private SortOrderBuilder&MockObject $sortBuilder;
 
     /**
-     * @var SortOrder&MockObject
+     * @var SortOrder&Stub
      */
     // phpcs:ignore Magento2.Commenting.ClassPropertyPHPDocFormatting
-    private SortOrder&MockObject $sortOrder;
+    private SortOrder&Stub $sortOrder;
 
     protected function setUp(): void
     {
         $this->criteriaBuilder = $this->createMock(SearchCriteriaBuilder::class);
         $this->sortBuilder = $this->createMock(SortOrderBuilder::class);
-        $this->sortOrder = $this->createMock(SortOrder::class);
+        $this->sortOrder = $this->createStub(SortOrder::class);
         $this->sortBuilder->method('setField')->willReturnSelf();
         $this->sortBuilder->method('setDirection')->willReturnSelf();
         $this->sortBuilder->method('create')->willReturn($this->sortOrder);
@@ -57,6 +58,8 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testDefaultSortIsLevelAsc(): void
     {
+        $this->criteriaBuilder->expects($this->once())->method('create');
+
         $this->sortBuilder->expects($this->once())->method('setField')->with('level');
         $this->sortBuilder->expects($this->once())->method('setDirection')->with(SortOrder::SORT_ASC);
 
@@ -65,6 +68,8 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testNameAddsWildcardLikeFilter(): void
     {
+        $this->sortBuilder->expects($this->once())->method('create');
+
         $calls = [];
         $this->criteriaBuilder->expects($this->atLeastOnce())
             ->method('addFilter')
@@ -80,6 +85,8 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testIsActiveBooleanCoercesToIntFilter(): void
     {
+        $this->sortBuilder->expects($this->once())->method('create');
+
         $this->criteriaBuilder->expects($this->atLeastOnce())
             ->method('addFilter')
             ->with('is_active', 0);
@@ -89,6 +96,8 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testIncludeInMenuStringTrueCoerces(): void
     {
+        $this->sortBuilder->expects($this->once())->method('create');
+
         $this->criteriaBuilder->expects($this->atLeastOnce())
             ->method('addFilter')
             ->with('include_in_menu', 1);
@@ -98,6 +107,8 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testParentIdArrayAddsInFilter(): void
     {
+        $this->sortBuilder->expects($this->once())->method('create');
+
         $this->criteriaBuilder->expects($this->atLeastOnce())
             ->method('addFilter')
             ->with('parent_id', $this->equalTo([2, 3]), 'in');
@@ -107,6 +118,8 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testLevelRangeSplitsIntoTwoFilters(): void
     {
+        $this->sortBuilder->expects($this->once())->method('create');
+
         $calls = [];
         $this->criteriaBuilder->expects($this->atLeast(2))
             ->method('addFilter')
@@ -128,6 +141,8 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testPageSizeCapsAtMax(): void
     {
+        $this->sortBuilder->expects($this->once())->method('create');
+
         $this->criteriaBuilder->expects($this->once())
             ->method('setPageSize')
             ->with(CategorySearchCriteriaBuilder::MAX_PAGE_SIZE);
@@ -137,6 +152,8 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testPageDefaultsToOne(): void
     {
+        $this->sortBuilder->expects($this->once())->method('create');
+
         $this->criteriaBuilder->expects($this->once())
             ->method('setCurrentPage')
             ->with(1);
@@ -146,6 +163,9 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testUnknownFilterThrows(): void
     {
+        $this->criteriaBuilder->expects($this->never())->method('create');
+        $this->sortBuilder->expects($this->never())->method('create');
+
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessageMatches('/Unknown category filter: "wat"/');
 
@@ -154,6 +174,9 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testTranslatorClaimsCustomKey(): void
     {
+        $this->criteriaBuilder->expects($this->once())->method('create');
+        $this->sortBuilder->expects($this->once())->method('create');
+
         $translator = $this->createMock(CategoryFilterTranslatorInterface::class);
         $translator->method('supports')->willReturnCallback(fn(string $k): bool => $k === 'custom_attr');
         $translator->expects($this->once())
@@ -171,6 +194,9 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testInvalidSortFieldThrows(): void
     {
+        $this->criteriaBuilder->expects($this->never())->method('create');
+        $this->sortBuilder->expects($this->never())->method('create');
+
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessageMatches('/"sort_by" must be one of/');
 
@@ -179,6 +205,9 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testInvalidSortDirThrows(): void
     {
+        $this->criteriaBuilder->expects($this->never())->method('create');
+        $this->sortBuilder->expects($this->never())->method('create');
+
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessageMatches('/"sort_dir" must be/');
 
@@ -187,6 +216,9 @@ class CategorySearchCriteriaBuilderTest extends TestCase
 
     public function testFiltersMustBeArray(): void
     {
+        $this->criteriaBuilder->expects($this->never())->method('create');
+        $this->sortBuilder->expects($this->never())->method('create');
+
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessageMatches('/Filter payload must be an object/');
 

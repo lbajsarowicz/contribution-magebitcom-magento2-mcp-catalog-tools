@@ -19,13 +19,14 @@ use PHPUnit\Framework\TestCase;
 
 class CategoryGetTest extends TestCase
 {
+    /** @var CategoryGet */
     private CategoryGet $tool;
 
     protected function setUp(): void
     {
         $this->tool = new CategoryGet(
-            $this->createMock(EntityFinder::class),
-            $this->createMock(ResolverPipeline::class),
+            $this->createStub(EntityFinder::class),
+            $this->createStub(ResolverPipeline::class),
             []
         );
     }
@@ -56,7 +57,7 @@ class CategoryGetTest extends TestCase
 
     public function testExecuteResolvesCategoryFromCategoryIdAlias(): void
     {
-        $category = $this->createMock(CategoryInterface::class);
+        $category = $this->createStub(CategoryInterface::class);
         $category->method('getId')->willReturn(33);
         $category->method('getName')->willReturn('Alias Category');
         $category->method('getLevel')->willReturn(2);
@@ -68,7 +69,7 @@ class CategoryGetTest extends TestCase
             ->willReturn($category);
 
         $entityFinder = new EntityFinder(
-            $this->createMock(ProductRepositoryInterface::class),
+            $this->createStub(ProductRepositoryInterface::class),
             $categoryRepository
         );
 
@@ -82,7 +83,7 @@ class CategoryGetTest extends TestCase
 
     public function testDefaultsToAdminScopeAsDocumented(): void
     {
-        $category = $this->createMock(CategoryInterface::class);
+        $category = $this->createStub(CategoryInterface::class);
         $category->method('getId')->willReturn(33);
 
         $categoryRepository = $this->createMock(CategoryRepositoryInterface::class);
@@ -93,7 +94,7 @@ class CategoryGetTest extends TestCase
 
         $tool = new CategoryGet(
             new EntityFinder(
-                $this->createMock(ProductRepositoryInterface::class),
+                $this->createStub(ProductRepositoryInterface::class),
                 $categoryRepository
             ),
             new ResolverPipeline(),
@@ -105,7 +106,7 @@ class CategoryGetTest extends TestCase
 
     public function testExplicitStoreIdStillWins(): void
     {
-        $category = $this->createMock(CategoryInterface::class);
+        $category = $this->createStub(CategoryInterface::class);
         $category->method('getId')->willReturn(33);
 
         $categoryRepository = $this->createMock(CategoryRepositoryInterface::class);
@@ -116,7 +117,7 @@ class CategoryGetTest extends TestCase
 
         $tool = new CategoryGet(
             new EntityFinder(
-                $this->createMock(ProductRepositoryInterface::class),
+                $this->createStub(ProductRepositoryInterface::class),
                 $categoryRepository
             ),
             new ResolverPipeline(),

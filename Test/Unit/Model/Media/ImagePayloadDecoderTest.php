@@ -127,7 +127,7 @@ class ImagePayloadDecoderTest extends TestCase
     {
         $captured = [];
 
-        $content = $this->createMock(ImageContentInterface::class);
+        $content = $this->createStub(ImageContentInterface::class);
         $content->method('setBase64EncodedData')->willReturnCallback(
             function ($value) use (&$captured): void {
                 $captured['data'] = (string) $value;
@@ -161,7 +161,7 @@ class ImagePayloadDecoderTest extends TestCase
             }
         );
 
-        $contentFactory = $this->createMock(ImageContentInterfaceFactory::class);
+        $contentFactory = $this->createStub(ImageContentInterfaceFactory::class);
         $contentFactory->method('create')->willReturn($content);
 
         (new ImagePayloadDecoder($contentFactory, new ImageContentValidator()))->create($payload, $filename);

@@ -34,7 +34,7 @@ class ProductCreateTest extends TestCase
         $product->method('getId')->willReturn(11);
         $product->method('getSku')->willReturn('sku-new');
 
-        $factory = $this->createMock(ProductInterfaceFactory::class);
+        $factory = $this->createStub(ProductInterfaceFactory::class);
         $factory->method('create')->willReturn($product);
 
         $repository = $this->createMock(ProductRepositoryInterface::class);
@@ -52,7 +52,7 @@ class ProductCreateTest extends TestCase
         $tool = new ProductCreate(
             $repository,
             $factory,
-            $this->createMock(ProductFieldApplier::class),
+            $this->createStub(ProductFieldApplier::class),
             $stockRegistry
         );
 
@@ -63,14 +63,14 @@ class ProductCreateTest extends TestCase
 
     public function testSeedsStockWhenQtyIsGiven(): void
     {
-        $product = $this->createMock(Product::class);
+        $product = $this->createStub(Product::class);
         $product->method('getId')->willReturn(12);
         $product->method('getSku')->willReturn('sku-stocked');
 
-        $factory = $this->createMock(ProductInterfaceFactory::class);
+        $factory = $this->createStub(ProductInterfaceFactory::class);
         $factory->method('create')->willReturn($product);
 
-        $repository = $this->createMock(ProductRepositoryInterface::class);
+        $repository = $this->createStub(ProductRepositoryInterface::class);
         $repository->method('save')->willReturn($product);
 
         $stockItem = $this->createMock(StockItemInterface::class);
@@ -88,7 +88,7 @@ class ProductCreateTest extends TestCase
         $tool = new ProductCreate(
             $repository,
             $factory,
-            $this->createMock(ProductFieldApplier::class),
+            $this->createStub(ProductFieldApplier::class),
             $stockRegistry
         );
 
