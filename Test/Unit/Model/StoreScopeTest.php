@@ -52,11 +52,12 @@ class StoreScopeTest extends TestCase
     {
         $this->currentStoreIs(2);
 
-        // Mock expectations are verified after the test body, so they still
-        // assert the restore even though the exception aborts the method.
+        $expectedStores = [0, 2];
         $this->storeManager->expects($this->exactly(2))
             ->method('setCurrentStore')
-            ->withConsecutive([$this->identicalTo(0)], [$this->identicalTo(2)]);
+            ->willReturnCallback(function ($store) use (&$expectedStores): void {
+                $this->assertSame(array_shift($expectedStores), $store);
+            });
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('boom');
